@@ -1,0 +1,69 @@
+using System;
+using System.Collections.Generic;       // Queue
+using System.Collections.Concurrent;    // ConcurrentQueue
+
+namespace OperatingSystem
+{
+    // Define enumeration of permitted instruction types 
+    public enum permittedTypes { COMPUTE, MONITOR, HARD_DRIVE, PRINTER, KEYBOARD };
+    
+    // Class Definitions   
+    public class Instruction
+    {
+        // Class Members
+        private int time;
+        private permittedTypes type;
+
+        // Class Constructors
+        private Instruction() { }        // Prevents instruction instantiation without parameters
+        public Instruction(int instructionTime, permittedTypes instructionType)
+        {
+            time = instructionTime;
+            type = instructionType;
+        }
+
+        // Methods
+        public int getRemainingTime() { return time; }
+        public void decrementTime() { time--; }
+        public permittedTypes getType() { return type; }
+    }
+
+    public class Process
+    {
+        // Class Members
+        private int PID;
+        private Queue<Instruction> Instructions;
+
+        // Class Constructors
+        private Process() { }            // Prevents process instantiation without parameters
+        public Process(int ProcessId)
+        {
+            PID = ProcessId;
+        }
+
+        // Methods
+        public int getPID() { return PID; }
+        public void enqueue(Instruction i) { Instructions.Enqueue(i); }
+        public void dequeue() { Instructions.Dequeue(); }
+        public Instruction front() { return Instructions.Peek(); }
+
+
+    }
+
+    // Main Method
+    class Program
+    {
+        static void Main()
+        {
+            // Declare Interrupt Manager
+            ConcurrentQueue<int> interruptManager;
+
+            Instruction test = new Instruction(1, permittedTypes.COMPUTE);
+            Console.WriteLine("Time = {0}, Type = {1}", test.getRemainingTime(), test.getType());
+
+            // Keep the console window open in debug mode.
+            Console.WriteLine("Press any key to exit.");
+            Console.ReadKey();
+        }
+    }
+}
