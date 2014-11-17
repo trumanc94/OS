@@ -4,19 +4,87 @@ using System.Collections.Concurrent;    // ConcurrentQueue
 
 namespace OperatingSystem
 {
-    // Define enumeration of permitted instruction types 
-    public enum permittedTypes { COMPUTE, MONITOR, HARD_DRIVE, PRINTER, KEYBOARD };
-    
+    // Define enumerations
+    public enum InstructionTypes { COMPUTE, MONITOR, HARD_DRIVE, PRINTER, KEYBOARD };  // Permitted Instruction Types
+    public enum SchedulerTypes { FIFO, ROUNDROBIN, SJF};  // Permitted Scheduler Types
+
     // Class Definitions   
+    public class Configuration
+    {
+        // Class Members
+        private int quantum;
+        private int processorCT;
+        private int monitorDT;
+        private int hardDriveCT;
+        private int printerCT;
+        private int keyboardCT;
+        private SchedulerTypes schedulerType;
+        private string metadataFilePath;
+
+        // Class Constructors
+        private Configuration() { }         // Prevents Configuration instantiation without parameters
+        public Configuration(int q, int processor, int monitor, int hardDrive, int printer, int keyboard, SchedulerTypes scheduler, string filePath)
+        {
+            quantum = q;
+            processorCT = processor;
+            monitorDT = monitor;
+            hardDriveCT = hardDrive;
+            printerCT = printer;
+            keyboardCT = keyboard;
+            schedulerType = scheduler;
+            metadataFilePath = filePath;
+        }
+
+        // Methods
+        public int getQuantum() { return quantum; }
+        public int getProcessorCT() { return processorCT; }
+        public int getMonitorDT() { return monitorDT; }
+        public int getHardDriveCT() { return hardDriveCT; }
+        public int getPrinterCT() { return printerCT; }
+        public int getKeyboardCT() { return keyboardCT; }
+        public SchedulerTypes getSchedulerType() { return schedulerType; }
+        public string getMetadataFilePath() { return metadataFilePath; }
+    }
+
+    public class EventLogger
+    {
+        // Class Members
+        private bool toFile;
+        private bool toConsole;
+
+        // Class Constructors
+        private EventLogger() { }       // Prevents EventLogger instantiation without parameters
+        public EventLogger(bool file, bool console)
+        {
+            toFile = file;
+            toConsole = console;
+        }
+
+        // Methods
+        public void log(string output)
+        {
+            if (toFile)
+            {     
+                //TODO: fix output to file -> make Configuration Class static
+                //System.IO.File.WriteAllText(OperatingSystem.Configuration.getMetadataFilePath(), output);
+            }
+
+            if (toConsole)
+            {
+                Console.Write(output);
+            }
+        }
+    }
+
     public class Instruction
     {
         // Class Members
         private int time;
-        private permittedTypes type;
+        private InstructionTypes type;
 
         // Class Constructors
-        private Instruction() { }        // Prevents instruction instantiation without parameters
-        public Instruction(int instructionTime, permittedTypes instructionType)
+        private Instruction() { }        // Prevents Instruction instantiation without parameters
+        public Instruction(int instructionTime, InstructionTypes instructionType)
         {
             time = instructionTime;
             type = instructionType;
@@ -25,7 +93,7 @@ namespace OperatingSystem
         // Methods
         public int getRemainingTime() { return time; }
         public void decrementTime() { time--; }
-        public permittedTypes getType() { return type; }
+        public InstructionTypes getType() { return type; }
     }
 
     public class Process
@@ -35,7 +103,7 @@ namespace OperatingSystem
         private Queue<Instruction> Instructions;
 
         // Class Constructors
-        private Process() { }            // Prevents process instantiation without parameters
+        private Process() { }            // Prevents Process instantiation without parameters
         public Process(int ProcessId)
         {
             PID = ProcessId;
@@ -57,10 +125,15 @@ namespace OperatingSystem
         {
             // Declare Interrupt Manager
             ConcurrentQueue<int> interruptManager;
-
-            Instruction test = new Instruction(1, permittedTypes.COMPUTE);
-            Console.WriteLine("Time = {0}, Type = {1}", test.getRemainingTime(), test.getType());
-
+/*
+            // TESTING
+            Configuration configTest = new Configuration(3, 10, 25, 50, 500, 1000, SchedulerTypes.FIFO, "blah");//"C:\Users\Truman\Desktop\test.txt");
+            Console.WriteLine("Quantum: {0}\nProcessorCT: {1}\nMonitorDT: {2}\nHardDriveCT: {3}\nPrinterCT: {4}\nKeyboardCT: {5}\nScheduler Type: {6}\nFile Path: {7}",
+                configTest.getQuantum(), configTest.getProcessorCT(), configTest.getMonitorDT(), configTest.getHardDriveCT(), configTest.getPrinterCT(), configTest.getKeyboardCT(), configTest.getSchedulerType(), configTest.getMetadataFilePath()); 
+  
+            Instruction instructionTest = new Instruction(1, InstructionTypes.COMPUTE);
+            Console.WriteLine("Time = {0}, Type = {1}", instructionTest.getRemainingTime(), instructionTest.getType());
+*/
             // Keep the console window open in debug mode.
             Console.WriteLine("Press any key to exit.");
             Console.ReadKey();
