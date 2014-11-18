@@ -26,7 +26,7 @@ namespace OperatingSystem
             return time;
         }
 
-        public bool decrementTime() 
+        public void decrementTime() 
         {
             time--;
         }

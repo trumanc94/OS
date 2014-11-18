@@ -41,10 +41,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="SJFScheduler.cs" />
+    <Compile Include="FIFOScheduler.cs" />
     <Compile Include="Configuration.cs" />
     <Compile Include="EventLogger.cs" />
     <Compile Include="Instruction.cs" />
     <Compile Include="InstructionType.cs" />
+    <Compile Include="Scheduler.cs" />
     <Compile Include="Process.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
