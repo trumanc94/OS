@@ -13,7 +13,7 @@ namespace OperatingSystem
         private InstructionType type;
 
         // Class Constructors
-        public Instruction( InstructionType instructionType, int runTime)
+        public Instruction(InstructionType instructionType, int runTime)
         {
             // Set the members
             time = runTime;
@@ -28,7 +28,12 @@ namespace OperatingSystem
 
         public void decrementTime() 
         {
-            time--;
+            // If time is greater than 0, decrement
+            if (time > 0)
+            {
+                time--;
+            }
+            else throw new ArgumentOutOfRangeException("Attempt to decrement time less than 1");
         }
 
         public InstructionType getType() 

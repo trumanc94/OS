@@ -11,8 +11,17 @@ namespace OperatingSystem
         // Methods
         public override Process getNextReady()
         {
-            // TODO: remove next from ready and return
-            //return ready.();
+            // If ready list not empty, remove next Process from list and return it
+            if (ready.Any())
+            {
+                Process temp = ready.First();
+                ready.RemoveAt(0);
+                return temp;
+            }
+
+            // Else, return null
+            return null;
+         // return new Process(-1);
         }
     }
 }

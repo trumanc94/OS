@@ -21,7 +21,30 @@ namespace OperatingSystem
   
                         Instruction instructionTest = new Instruction(1, InstructionTypes.COMPUTE);
                         Console.WriteLine("Time = {0}, Type = {1}", instructionTest.getRemainingTime(), instructionTest.getType());
+            
+                        // TESTING TOTAL PROCESS TIME
+                        Process tempProcess = new Process(1);
+                        Process tempProcess2 = new Process(2);
+             
+                        for (int i = 0; i < 10; i++)
+                        {
+                            Instruction temp = new Instruction(InstructionType.COMPUTE, i);
+                            tempProcess.enqueue(temp);
+                        }
+
+                        Instruction temp2 = new Instruction(InstructionType.MONITOR, 100);
+                        tempProcess2.enqueue(temp2);
+
+                        Console.WriteLine(tempProcess.getTotalProcessTime()); // should be 45
+                        Console.WriteLine(tempProcess2.getTotalProcessTime()); // should be 100
+            
+                        // TESTING SJF process sort
+                        SJFScheduler scheduler = new SJFScheduler(1);
+                        scheduler.addToReady(tempProcess);
+                        scheduler.addToReady(tempProcess2);
+                        scheduler.getNextReady();
             */
+
             // Keep the console window open in debug mode.
             Console.WriteLine("Press any key to exit.");
             Console.ReadKey();

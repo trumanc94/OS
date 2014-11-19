@@ -18,9 +18,28 @@ namespace OperatingSystem
         }
 
         // Methods
-        public Process getNextReady()
+        public override Process getNextReady()
         {
-            throw new NotImplementedException();
+            // Resort Processes in ready queue by total processing time (ascending)
+            this.ready.Sort();
+
+            // If ready list not empty, remove next Process from list and return it
+            if (ready.Any())
+            {
+                Process temp = ready.First();
+                ready.RemoveAt(0);
+                return temp;
+            }
+            /*
+                // TESTING PROCESS SORT
+                foreach (Process p in this.ready)
+                {
+                    Console.WriteLine(p.getPID());
+                }
+            */
+
+            // Else, return null
+            return null;
         }
     }
 }
