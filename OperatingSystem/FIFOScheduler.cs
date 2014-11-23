@@ -8,8 +8,11 @@ namespace OperatingSystem
 {
     class FIFOScheduler : Scheduler
     {
+        // Class Constructor
+        public FIFOScheduler(Configuration config) : base(config) { }
+
         // Methods
-        public override Process getNextReady()
+        public override bool runOneTimeUnit()
         {
             // If ready list not empty, remove next Process from list and return it
             if (ready.Any())
@@ -21,7 +24,7 @@ namespace OperatingSystem
 
             // Else, return null
             return null;
-         // return new Process(-1);
+            // return new Process(-1);
         }
     }
 }

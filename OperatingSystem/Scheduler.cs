@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace OperatingSystem
@@ -11,73 +12,81 @@ namespace OperatingSystem
         // Class Members
         protected List<Process> ready;
         protected List<Process> waiting;
+        protected Dictionary<int, Thread> threads;
         protected Process running;
+        protected Configuration conf;
 
-        // Class Constructor
-        public Scheduler()
+        // Constructor
+        public Scheduler(Configuration configuration)
         {
+            // Allocate the members
+            conf = configuration;
+            running = null;
             ready = new List<Process>();
             waiting = new List<Process>();
+            threads = new Dictionary<int, Thread>();
         }
 
-        // Methods
-        abstract public Process getNextReady();
+        // Abstract Methods
+        abstract public bool runOneTimeUnit();
 
-        public Process getCurrent()
+        // Public Methods
+        public bool isComplete()
         {
-            // Return current running process
-            return running;
+            // The scheduler is only complete if there is nothing left to run
+            return (ready.Count == 0) && (waiting.Count == 0) &&
+                (threads.Count == 0) && (running == null);
         }
 
-        public void setCurrent(Process p)
+        public void addProcessToReady(Process src)
         {
-            // If there is currently running process, move it to ready
-            if (running != null)
+            // Add the process to the ready list
+            ready.Add(src);
+        }
+
+        // Protected Methods
+        protected void serviceInterrupts()
+        {
+            // Initialize variables
+            List<int> tmp = new List<int>();
+
+            // Iterate through the queue
+            foreach (KeyValuePair<int, Thread> i in threads)
             {
-                ready.Add(running);
+                // Check if thread is finished
+                if (!i.Value.IsAlive)
+                {
+                    // Move the process with the same pid to ready
+                    Process result = waiting.Find(x => x.getPID() == i.Key);
+
+                    // If it was found
+                    if (result != null)
+                    {
+                        // Add to ready, remove from waiting
+                        ready.Add(result);
+                        waiting.Remove(result);
+                        tmp.Add(i.Key);
+                    }
+                    else
+                    {
+                        // Print out an error
+                        Console.WriteLine("Failed to move process from waiting to ready. PID = " + i.Key);
+                    }
+
+                    // Add pid to the removal list
+                    tmp.Add(i.Key);
+                }
             }
 
-            // Set new process as running
-            running = p;
-        }
-    
-        public void addToReady(Process p)
-        {
-            // Add process to ready list
-            ready.Add(p);
-        }
-
-        public void moveToReady()
-        {
-            // If there is currently running process, move it to ready, and set running to null
-            if (running != null)
+            // For each pid in the tmp list
+            foreach (int i in tmp)
             {
-                ready.Add(running);
-                running = null;
+                // Remove from the dictionary
+                threads.Remove(i);
             }
-        }
 
-        public void addToWaiting(Process p)
-        {
-            // Add process to waiting list
-            waiting.Add(p);
+            // Clear the tmp list
+            tmp.Clear();
         }
-
-        public void moveToWaiting()
-        {
-            // If currently running process is blocked, move it to waiting, and set running to null
-            if (running != null)
-            {
-                waiting.Add(running);
-                running = null;
-            }
-        }
-
-        public void moveToTerminate()
-        {
-            // Move current running process to Terminate state by setting to null
-            running = null;
-        }
-
     }
 }

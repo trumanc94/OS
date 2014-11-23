@@ -12,39 +12,60 @@ namespace OperatingSystem
         public bool toFile = false;
         public static StreamWriter fileStream = null;
 
-        public EventLogger( bool console, String fileName )
+        // Methods
+        public void setOutputToConsole(bool enable)
         {
-            // Set the members
-            toConsole = console;
+            // Set
+            toConsole = enable;
+        }
 
+        public void setOutputToFile(String file)
+        {
             // Check if file provided
-            if( fileName != null )
+            if (file != null)
             {
+                fileStream = new StreamWriter(file);
                 toFile = true;
-                fileStream = new StreamWriter( fileName );
+            }
+            else
+            {
+                fileStream.Close();
+                fileStream = null;
+                toFile = false;
             }
         }
 
-        public void log( String text )
+        public void log(String text)
         {
             // If console logging enabled
-            if( toConsole )
+            if (toConsole)
             {
-                Console.WriteLine( text );
+                Console.WriteLine(text);
             }
 
             // If file logged enabled
-            if( toFile )
+            if (toFile)
             {
-                fileStream.WriteLine( text );
+                fileStream.WriteLine(text);
             }
         }
 
-        public void closeLogger()
+        public void close()
         {
             // Reset the values and close the stream
             toConsole = toFile = false;
             fileStream.Close();
+            fileStream = null;
+        }
+
+        ~EventLogger()
+        {
+            // Check if logger has not been closed
+            if (fileStream != null)
+            {
+                fileStream.Close();
+                fileStream = null;
+            }
         }
     }
 }

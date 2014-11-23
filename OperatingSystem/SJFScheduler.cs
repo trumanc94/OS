@@ -9,16 +9,13 @@ namespace OperatingSystem
     class SJFScheduler : Scheduler
     {
         // Class Members
-        int quantum; 
+        int elapsed;
 
         // Class Constructor
-        public SJFScheduler(int q)
-        {
-            quantum = q;
-        }
+        public SJFScheduler(Configuration config) : base(config) { }
 
         // Methods
-        public override Process getNextReady()
+        public override bool runOneTimeUnit()
         {
             // Resort Processes in ready queue by total processing time (ascending)
             this.ready.Sort();

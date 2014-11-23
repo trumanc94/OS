@@ -41,6 +41,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="IOThread.cs" />
+    <Compile Include="RRScheduler.cs" />
     <Compile Include="SJFScheduler.cs" />
     <Compile Include="FIFOScheduler.cs" />
     <Compile Include="Configuration.cs" />
