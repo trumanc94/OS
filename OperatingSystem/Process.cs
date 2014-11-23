@@ -42,6 +42,12 @@ namespace OperatingSystem
             }
         }
 
+        public bool isComplete()
+        {
+            // Process is complete if there are no more instructions
+            return (instructions.Count == 0);
+        }
+
         public void enqueue( Instruction toAdd )
         {
             // Enqueue new Instruction into instructions queue

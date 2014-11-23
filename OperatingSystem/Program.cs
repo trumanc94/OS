@@ -167,7 +167,7 @@ namespace OperatingSystem
             
             try
             {
-                // Read everything (which is all one one line)
+                // Read everything (which is all on one line)
                 string content = reader.ReadLine();
 
                 // Split between units

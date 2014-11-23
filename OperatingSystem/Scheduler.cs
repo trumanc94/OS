@@ -43,6 +43,15 @@ namespace OperatingSystem
             // Add the process to the ready list
             ready.Add(src);
         }
+        public void moveToWaiting()
+        {
+            // If currently running process is blocked, move it to waiting, and set running to null
+            if (running != null)
+            {
+                waiting.Add(running);
+                running = null;
+            }
+        }
 
         // Protected Methods
         protected void serviceInterrupts()
