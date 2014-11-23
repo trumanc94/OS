@@ -17,26 +17,32 @@ namespace OperatingSystem
         // Methods
         public override bool runOneTimeUnit()
         {
+            // Start by servicing interrupts
+            serviceInterrupts();
+
             // Resort Processes in ready queue by total processing time (ascending)
             this.ready.Sort();
 
-            // If ready list not empty, remove next Process from list and return it
-            if (ready.Any())
-            {
-                Process temp = ready.First();
-                ready.RemoveAt(0);
-                return temp;
-            }
-            /*
-                // TESTING PROCESS SORT
-                foreach (Process p in this.ready)
-                {
-                    Console.WriteLine(p.getPID());
-                }
-            */
-
-            // Else, return null
-            return null;
+            // If there is a process running
+                // If it is needs to be preempted
+                    // Preempt
+                    // Pull new process from scheduler scheme
+                    // Do what it wants for a time unit
+                    // Sleep
+                // Else
+                    // Do what it wants for a time unit
+                    // Sleep
+            // Else
+                // Try to get a new process
+                // If new process recieved
+                    // Do what it wants for a time unit
+                    // Sleep
+                // Else
+                    // If waiting queue still has stuff
+                        // Do nothing for one time unit
+                    // Else
+                        // Return false because nothing left to do
+                        return false;
         }
     }
 }

@@ -14,17 +14,23 @@ namespace OperatingSystem
         // Methods
         public override bool runOneTimeUnit()
         {
-            // If ready list not empty, remove next Process from list and return it
-            if (ready.Any())
-            {
-                Process temp = ready.First();
-                ready.RemoveAt(0);
-                return temp;
-            }
+            // Start by servicing interrupts
+            serviceInterrupts();
 
-            // Else, return null
-            return null;
-            // return new Process(-1);
+            // If there is a process running
+                // Do what it wants for a time unit
+                // Sleep
+            // Else
+                // Try to get a new process
+                // If new process recieved
+                    // Do what it wants for a time unit
+                    // Sleep
+                // Else
+                    // If waiting queue still has stuff
+                        // Do nothing for one time unit
+                    // Else
+                        // Return false because nothing left to do
+                        return false;
         }
     }
 }
