@@ -57,15 +57,5 @@ namespace OperatingSystem
             fileStream.Close();
             fileStream = null;
         }
-
-        ~EventLogger()
-        {
-            // Check if logger has not been closed
-            if (fileStream != null)
-            {
-                fileStream.Close();
-                fileStream = null;
-            }
-        }
     }
 }

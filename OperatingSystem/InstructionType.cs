@@ -10,8 +10,8 @@ namespace OperatingSystem
     {
         COMPUTE,
         MONITOR, 
-        HARD_DRIVE, 
-        PRINTER, 
+        HARD_DRIVE_IN,
+        HARD_DRIVE_OUT,
         KEYBOARD
     }
 }

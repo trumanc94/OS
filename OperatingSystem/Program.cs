@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace OperatingSystem
@@ -16,10 +18,10 @@ namespace OperatingSystem
             Configuration config;
 
             // Check if the arguments contains a file name
-            if( args.Length >= 2 )
+            if( args.Length >= 1 )
             {
                 // Parse the configurations from that file
-                config = parseConfiguration(args[1]);
+                config = parseConfiguration(args[0]);
 
                 // Initialize the scheduler
                 Scheduler scheduler;
@@ -37,46 +39,30 @@ namespace OperatingSystem
                         break;
                 }
 
+                // Read the meta
+                List<String[]> metaList = parseMeta(config.metaFilePath);
+
                 // Read the processes
+                List<Process> procList = parseProcesses(metaList);
 
+                // Move processes into the scheduler
+                foreach( Process i in procList )
+                {
+                    scheduler.addProcessToReady(i);
+                }
+
+                // Main loop
+                while( !scheduler.isComplete() )
+                {
+                    scheduler.runOneTimeUnit();
+                    Thread.Sleep(100);
+                    Console.WriteLine("Woken");
+                }
+
+                // Keep the console window open in debug mode.
+                Console.WriteLine("Press any key to exit.");
+                Console.ReadKey();
             }
-
-
-            /*
-                        // TESTING
-                        Configuration configTest = new Configuration(3, 10, 25, 50, 500, 1000, SchedulerTypes.FIFO, "blah");//"C:\Users\Truman\Desktop\test.txt");
-                        Console.WriteLine("Quantum: {0}\nProcessorCT: {1}\nMonitorDT: {2}\nHardDriveCT: {3}\nPrinterCT: {4}\nKeyboardCT: {5}\nScheduler Type: {6}\nFile Path: {7}",
-                            configTest.getQuantum(), configTest.getProcessorCT(), configTest.getMonitorDT(), configTest.getHardDriveCT(), configTest.getPrinterCT(), configTest.getKeyboardCT(), configTest.getSchedulerType(), configTest.getMetadataFilePath()); 
-  
-                        Instruction instructionTest = new Instruction(1, InstructionTypes.COMPUTE);
-                        Console.WriteLine("Time = {0}, Type = {1}", instructionTest.getRemainingTime(), instructionTest.getType());
-            
-                        // TESTING TOTAL PROCESS TIME
-                        Process tempProcess = new Process(1);
-                        Process tempProcess2 = new Process(2);
-             
-                        for (int i = 0; i < 10; i++)
-                        {
-                            Instruction temp = new Instruction(InstructionType.COMPUTE, i);
-                            tempProcess.enqueue(temp);
-                        }
-
-                        Instruction temp2 = new Instruction(InstructionType.MONITOR, 100);
-                        tempProcess2.enqueue(temp2);
-
-                        Console.WriteLine(tempProcess.getTotalProcessTime()); // should be 45
-                        Console.WriteLine(tempProcess2.getTotalProcessTime()); // should be 100
-            
-                        // TESTING SJF process sort
-                        SJFScheduler scheduler = new SJFScheduler(1);
-                        scheduler.addToReady(tempProcess);
-                        scheduler.addToReady(tempProcess2);
-                        scheduler.getNextReady();
-            */
-
-            // Keep the console window open in debug mode.
-            Console.WriteLine("Press any key to exit.");
-            Console.ReadKey();
         }
 
         private static Configuration parseConfiguration(string path)
@@ -89,9 +75,13 @@ namespace OperatingSystem
             // Try
             try
             {
+                // Read and discard the first two lines
+                reader.ReadLine();
+                reader.ReadLine();
+
                 // Read file path
                 buffer = reader.ReadLine();
-                config.metaFilePath = buffer.Split(':')[1];
+                config.metaFilePath = buffer.Split(':')[1].Trim();
 
                 // Read quantum
                 buffer = reader.ReadLine();
@@ -131,6 +121,9 @@ namespace OperatingSystem
                 buffer = reader.ReadLine();
                 config.keyboardTime = Convert.ToInt32(buffer.Split(':')[1]);
 
+                // Read and discard the memory settings
+                reader.ReadLine();
+
                 // Read log settings
                 buffer = reader.ReadLine();
                 config.logger = new EventLogger();
@@ -165,40 +158,104 @@ namespace OperatingSystem
             }
         }
 
-        private static string[] readMetaUnit( StreamReader reader )
+        private static List<string[]> parseMeta(string path)
         {
-            // Check if reader is valid
-            if (reader == null) { return null; }
-
             // Initialize variables
-            char[] buf = new char[1];
-            string[] retval = new string[3];
-            StringBuilder builder = new StringBuilder();
-
-            // Read the first character
-            reader.Read(buf, 0, 1);
-            while (buf[0] == ' ') { reader.Read(buf, 0, 1); }
-            retval[0] = buf[0].ToString();
-
-            // Read the type
-            reader.Read(buf, 0, 1);
-            reader.Read(buf, 0, 1);
-            while( buf[0] != ')' )
+            string[] betweenComp = new String[] { "; " };
+            List<string[]> retval = new List<string[]>();
+            StreamReader reader = new StreamReader(path);
+            
+            try
             {
-                builder.Append( buf[0] );
-            }
-            retval[1] = builder.ToString();
+                // Read everything (which is all one one line)
+                string content = reader.ReadLine();
 
-            // Read the time to run
-            builder.Clear();
-            reader.Read(buf, 0, 1);
-            while (buf[0] != ';' | buf[0] != '.')
-            {
-                builder.Append(buf[0]);
+                // Split between units
+                foreach (string i in content.Split(betweenComp, StringSplitOptions.None))
+                {
+                    retval.Add(i.Split(')'));
+                }
+
+                // Remove the period for the list component
+                retval[retval.Count - 1][1] = retval[retval.Count - 1][1].Replace(".", " ");
             }
-            retval[2] = builder.ToString();
+            catch( NullReferenceException i )
+            {
+                Console.WriteLine(i.StackTrace);
+            }
+            finally
+            {
+                // Close the reader
+                reader.Close();
+            }
 
             // Return the result
+            return retval;
+        }
+
+        private static List<Process> parseProcesses(List<String[]> src)
+        {
+            // Initialize variables
+            int index = 0;
+            int pid = 1;
+            List<Process> retval = new List<Process>();
+
+            // While not at the end
+            while( index != src.Count )
+            {
+                // Check if it is an application definition
+                if( src[index][0][0] == 'A' )
+                {
+                    // Create a new process
+                    Process proc = new Process( pid );
+                    index++;
+
+                    // While another 'A' or 'S' is not found
+                    while(src[index][0][0] != 'A' && src[index][0][0] != 'S' )
+                    {
+                        // Read the instruction
+                        InstructionType type;
+                        switch( src[index][0] )
+                        {
+                            default:
+                            case "P(run":
+                                type = InstructionType.COMPUTE;
+                                break;
+                            case "I(hard drive":
+                                type = InstructionType.HARD_DRIVE_IN;
+                                break;
+                            case "I(keyboard":
+                                type = InstructionType.KEYBOARD;
+                                break;
+                            case "O(hard drive": 
+                                type = InstructionType.HARD_DRIVE_OUT;
+                                break;
+                            case "O(monitor":
+                                type = InstructionType.MONITOR;
+                                break;
+
+                        }
+
+                        // Get the time
+                        int time = Convert.ToInt32( src[index][1] );
+
+                        // Enqueue an instruction
+                        proc.enqueue( new Instruction( type, time ) );
+
+                        // Increment index
+                        index++;
+                    }
+
+                    // Enqueue the process
+                    retval.Add(proc);
+                    pid++;
+                }
+
+                // Increment index
+                index++;
+            }
+
+            // Return the processes
             return retval;
         }
     }
