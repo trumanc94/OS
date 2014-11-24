@@ -61,6 +61,9 @@ namespace OperatingSystem
                     // Reset elapsed cycles to 0
                     elapsed = 0;
 
+                    // Resort Processes in ready queue by total processing time (ascending)
+                    this.ready.Sort();
+
                     // Get a new process
                     running = ready[0];
                     ready.RemoveAt(0);
