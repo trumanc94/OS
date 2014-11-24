@@ -17,14 +17,39 @@ namespace OperatingSystem
         {
             // Initialize variables
             Stopwatch sw = new Stopwatch();
-            Configuration config;
+            Configuration config = null;
 
             // Check if the arguments contains a file name
             if( args.Length >= 1 )
             {
                 // Parse the configurations from that file
                 sw.Restart();
-                config = parseConfiguration(args[0]);
+                try
+                {
+                    config = parseConfiguration(args[0]);
+                }
+                catch( FileNotFoundException ex )
+                {
+                    Console.WriteLine(args[0] + " was not found.");
+                    Console.WriteLine("Please add it in the directory \"" + Directory.GetCurrentDirectory() + "\""); 
+                    Console.WriteLine("Exiting program.");
+                    Console.ReadKey();
+                    Environment.Exit(-1);
+                }
+
+                // Try to open the meta file
+                try
+                {
+                    StreamReader s = new StreamReader(config.metaFilePath);
+                }
+                catch (FileNotFoundException ex)
+                {
+                    Console.WriteLine(config.metaFilePath + " was not found.");
+                    Console.WriteLine("Please add it in the directory \"" + Directory.GetCurrentDirectory() + "\"");
+                    Console.WriteLine("Exiting program.");
+                    Console.ReadKey();
+                    Environment.Exit(-1);
+                }
 
                 // Initialize the scheduler
                 Scheduler scheduler;
@@ -76,6 +101,10 @@ namespace OperatingSystem
 
                 // Close the logger (it flushes the file buffer)
                 config.logger.close();
+
+                // Print out a completion message and request a key press
+                Console.WriteLine( "Press any key to exit program ... " );
+                Console.ReadKey();
             }
         }
 
@@ -177,17 +206,21 @@ namespace OperatingSystem
         private static List<string[]> parseMeta(string path)
         {
             // Initialize variables
-            string[] betweenComp = new String[] { "; " };
+            string[] betweenComp = new string[] { "; ", "\n", "\r", ";\n", ";\r" };
             List<string[]> retval = new List<string[]>();
             StreamReader reader = new StreamReader(path);
             
             try
             {
-                // Read everything (which is all one one line)
-                string content = reader.ReadLine();
+                // Read the first two lines as garbage
+                reader.ReadLine();
+                reader.ReadLine();
+
+                // Read everything
+                string content = reader.ReadToEnd();
 
                 // Split between units
-                foreach (string i in content.Split(betweenComp, StringSplitOptions.None))
+                foreach (string i in content.Split(betweenComp, StringSplitOptions.RemoveEmptyEntries))
                 {
                     retval.Add(i.Split(')'));
                 }
