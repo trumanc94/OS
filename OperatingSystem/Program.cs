@@ -103,19 +103,17 @@ namespace OperatingSystem
 
                 // Read scheduler type
                 buffer = reader.ReadLine();
-                switch( buffer.Split(':')[1].ToUpper() )
+                switch( buffer.Split(':')[1].Trim().ToUpper() )
                 {
+                    default:
                     case "FIFO":
                         config.type = SchedulerType.FIFO;
                         break;
-                    case "SFJ":
+                    case "SJF":
                         config.type = SchedulerType.SJF;
                         break;
                     case "RR":
                         config.type = SchedulerType.ROUND_ROBIN;
-                        break;
-                    default:
-                        config.type = SchedulerType.FIFO;
                         break;
                 }
 
@@ -141,7 +139,7 @@ namespace OperatingSystem
                 // Read log settings
                 buffer = reader.ReadLine();
                 config.logger = new EventLogger();
-                switch( buffer.Split(':')[1].ToUpper() )
+                switch( buffer.Split(':')[1].Trim().ToUpper() )
                 {
                     case "LOG TO MONITOR":
                         config.logger.setOutputToConsole(true);
