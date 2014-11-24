@@ -6,6 +6,10 @@ using System.Threading.Tasks;
 
 namespace OperatingSystem
 {
+    /*
+     * InstructionType
+     * Enumeration for the different types of instructions.
+     */
     public enum InstructionType
     {
         COMPUTE,

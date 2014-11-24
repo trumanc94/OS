@@ -6,17 +6,21 @@ using System.Threading.Tasks;
 
 namespace OperatingSystem
 {
+    /*
+     * Configuration
+     * Used to store, in a public manner, the values parsed from the 
+     * configuration file.
+     */
     class Configuration
     {
-        // Class Members
         public int quantum;
         public int processorTime;
         public int monitorTime;
         public int hdTime;
         public int printerTime;
         public int keyboardTime;
-        public string metaFilePath = null;
-        public SchedulerType type = SchedulerType.FIFO;
-        public EventLogger logger = null;
+        public string metaFilePath;
+        public SchedulerType type;
+        public EventLogger logger;
     }
 }

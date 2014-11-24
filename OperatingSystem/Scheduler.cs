@@ -7,30 +7,40 @@ using System.Threading.Tasks;
 
 namespace OperatingSystem
 {
+    /*
+     * Scheduler
+     * This class controls everything related to the processes. 
+     * 
+     * As soon as the processes are constructed (new state), they are 
+     * added into the ready list of the scheduler (ready state). 
+     * 
+     * From there, they will execute once picked (running state). 
+     * 
+     * If they request IO, this class will create the appropriate IOThread
+     * and move the process to the waiting list (waiting state).
+     * 
+     * If the process is completed while in the running state, it will
+     * be removed (terminate state).
+     */
     abstract class Scheduler
     {
-        // Class Members
-        protected List<Process> ready;
-        protected List<Process> waiting;
-        protected Dictionary<int, Thread> threads;
-        protected Process running;
+        protected List<Process> ready = new List<Process>();
+        protected List<Process> waiting = new List<Process>();
+        protected Dictionary<int, Thread> threads = new Dictionary<int, Thread>();
+        protected Process running = null;
         protected Configuration config;
 
-        // Constructor
+        // Constructor to initialize all the variables
         public Scheduler(Configuration configuration)
         {
-            // Allocate the members
+            // Set the configuration
             config = configuration;
-            running = null;
-            ready = new List<Process>();
-            waiting = new List<Process>();
-            threads = new Dictionary<int, Thread>();
         }
 
         // Abstract Methods
         abstract public bool runOneTimeUnit();
 
-        // Public Methods
+        // Returns if the scheduler is empty / complete
         public bool isComplete()
         {
             // The scheduler is only complete if there is nothing left to run
@@ -38,13 +48,19 @@ namespace OperatingSystem
                 (threads.Count == 0) && (running == null);
         }
 
+        // Adds the process to the ready list
         public void addProcessToReady(Process src)
         {
-            // Add the process to the ready list
-            ready.Add(src);
+            // If not null, add it
+            if (src != null)
+            {
+                ready.Add(src);
+            }
         }
 
-        // Protected Methods
+        // Used by the derived classes to request IO for the process that is
+        // currently running in the processor. It also takes care of moving
+        // the process to the waiting list.
         protected void requestIOForCurrent()
         {
             // Check if there is a process running
@@ -87,6 +103,9 @@ namespace OperatingSystem
             }
         }
 
+        // Used by the derived classes to service any IO threads that have
+        // finished executing. It move the processes from the waiting to the
+        // ready list. It also takes care of PCB management for the IO.
         protected void serviceInterrupts()
         {
             // Initialize variables
@@ -138,7 +157,8 @@ namespace OperatingSystem
                     else
                     {
                         // Print out an error
-                        Console.WriteLine("Failed to move process from waiting to ready. PID = " + i.Key);
+                        Console.WriteLine("Failed to move process from "
+                            + "waiting to ready. PID = " + i.Key);
                     }
 
                     // Add pid to the removal list

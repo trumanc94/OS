@@ -7,6 +7,15 @@ using System.Threading.Tasks;
 
 namespace OperatingSystem
 {
+    /*
+     * RRScheduler
+     * Picks out the process next in line of the ready list and allocates the
+     * CPU for it. If the process runs out of quantum, it is added to the back
+     * of the list. 
+     * 
+     * It does this for every process in the ready list and goes idle if the
+     * ready lis is empty.
+     */
     class RRScheduler : Scheduler
     {
         // Class Members

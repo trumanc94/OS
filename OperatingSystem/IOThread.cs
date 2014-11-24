@@ -6,6 +6,11 @@ using System.Threading;
 
 namespace OperatingSystem
 {
+    /*
+     * IOThread
+     * Class with a target method for a thread which will only sleep. The
+     * amount of time it will sleep is set up by the constructor.
+     */
     class IOThread
     {
         // Data members

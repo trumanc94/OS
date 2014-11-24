@@ -6,35 +6,48 @@ using System.Threading.Tasks;
 using System.IO;
 namespace OperatingSystem
 {
+    /*
+     * EventLogger
+     * Takes care of managing if output should be copied to console
+     * and/or the specified file.
+     */
     public class EventLogger
     {
         public bool toConsole = false;
         public bool toFile = false;
         public static StreamWriter fileStream = null;
 
-        // Methods
+        // Output to console is enabled if the argument is true
         public void setOutputToConsole(bool enable)
         {
             // Set
             toConsole = enable;
         }
 
-        public void setOutputToFile(String file)
+        // Output to file is enabled if the file is created
+        public void setOutputToFile(String path)
         {
-            // Check if file provided
-            if (file != null)
+            try
             {
-                fileStream = new StreamWriter(file);
+                // Allow output to file
                 toFile = true;
+                fileStream = new StreamWriter(path);
             }
-            else
+            catch( NullReferenceException ex )
             {
-                fileStream.Close();
-                fileStream = null;
+                Console.WriteLine(ex.StackTrace);
                 toFile = false;
+                fileStream = null;
+            }
+            catch( IOException ex )
+            {
+                Console.WriteLine(ex.StackTrace);
+                toFile = false;
+                fileStream = null;
             }
         }
 
+        // Logs the input to console + file occording to the flags
         public void log(String text)
         {
             // If console logging enabled
@@ -50,11 +63,14 @@ namespace OperatingSystem
             }
         }
 
+        // Closes the logger properly. This function MUST be called on finish.
         public void close()
         {
-            // Reset the values and close the stream
-            fileStream.Flush();
+            // Reset the values
             toConsole = toFile = false;
+
+            // Flush and close the stream
+            fileStream.Flush();
             fileStream.Close();
             fileStream = null;
         }

@@ -7,6 +7,14 @@ using System.Threading.Tasks;
 
 namespace OperatingSystem
 {
+    /*
+     * SJFScheduler
+     * Picks out the process with the lowest total running time and allocates
+     * the CPU for it. 
+     * 
+     * It does this for every process in the ready list and goes idle if the
+     * ready lis is empty.
+     */
     class SJFScheduler : Scheduler
     {
         // Class Members

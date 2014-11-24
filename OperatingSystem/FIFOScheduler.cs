@@ -7,6 +7,14 @@ using System.Threading.Tasks;
 
 namespace OperatingSystem
 {
+    /*
+     * FIFOScheduler
+     * Picks out the process that arrived first in the CPU and allocates the
+     * CPU to it.
+     * 
+     * It does this for every process in the ready list and goes idle if the
+     * ready lis is empty.
+     */
     class FIFOScheduler : Scheduler
     {
         // Class Constructor

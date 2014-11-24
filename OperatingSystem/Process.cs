@@ -6,85 +6,70 @@ using System.Threading.Tasks;
 
 namespace OperatingSystem
 {
+    /*
+     * Process
+     * The PCB class which contains the process's proccess identification
+     * number and the instructions (in order) that process needs to execute.
+     */
     public class Process : IComparable<Process>
     {
         // Class Members
         private int pid;
-        private int totalProcessTime;
         private Queue< Instruction > instructions;
 
         // Class Constructors
         public Process( int uniqueId )
         {
             pid = uniqueId;
-            totalProcessTime = 0;
             instructions = new Queue<Instruction>();
         }
 
-        // Methods
-        public int getPID()
-        {
-            return pid;
-        }
+        // Returns the process's process identification number
+        public int getPID() { return pid; }
 
-        public void enqueue( Instruction toAdd )
+        // Returns if the process has any more instructions to execute
+        public bool isComplete() { return !instructions.Any(); }
+
+        // Returns the first incomplete instruction for the process
+        public Instruction front() { return instructions.Peek(); }
+
+        // Adds the instruction to the process
+        public void enqueue(Instruction toAdd)
         {
             // Enqueue new Instruction into instructions queue
             instructions.Enqueue(toAdd);
-            
-            // Update total Process time with new instruction
-            totalProcessTime += toAdd.getRemainingTime();
         }
 
+        // Removes the first instruction from the process
         public Instruction dequeue()
         {
             // If there are instructions in queue, dequeue and return it
             if (instructions.Any())
             {
-                // Dequeue Instruction
-                Instruction temp = instructions.Dequeue();
-
-                // Update total Process time without dequeued instruction
-                recalculateTotalProcessTime();
-
                 // Return dequeued instruction
-                return temp;
+                return instructions.Dequeue();
             }
-            else throw new ArgumentOutOfRangeException("Attempt to dequeue empty Instruction queue");
-        }
-
-        public Instruction front()
-        {
-            return instructions.Peek();
-        }
-
-        public bool isComplete()
-        {
-            return !(instructions.Any());
+            else throw new ArgumentOutOfRangeException(
+                "Attempt to dequeue empty Instruction queue");
         }
 
         // IComparable Interface implementation for Process Class
         public int CompareTo(Process other)
         {
-/*
-            // USE THIS IF WE WANT TO SORT BY ANOTHER MEMBER WHEN TOTAL PROCESS TIMES ARE EQUAL
-            if (this.pid == other.pid)
-            {
-                return this.[Insert Member Here].CompareTo(other.[Insert Member Here]);
-            }
-*/
             // Default comparer for total process time (sorts by ascending Total Processing Time)
-            return this.totalProcessTime.CompareTo(other.totalProcessTime);
+            return this.getRemainingProcessTime().CompareTo(other.getRemainingProcessTime());
         }
 
-        protected void recalculateTotalProcessTime()
+        // Returns the amount of time the process's instructions will take in total
+        protected int getRemainingProcessTime()
         {
             // Iterate through instruction queue and update total Process time based on instruction times
-            totalProcessTime = 0;
+            int totalProcessTime = 0;
             foreach (Instruction i in instructions)
             {
                 totalProcessTime += i.getRemainingTime();
             }
+            return totalProcessTime;
         }
     }
 }

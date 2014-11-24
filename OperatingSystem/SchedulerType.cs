@@ -5,6 +5,10 @@ using System.Text;
 
 namespace OperatingSystem
 {
+    /*
+     * SchedulerType
+     * Enumeration for the different types of schedulers.
+     */
     public enum SchedulerType
     {
         FIFO,

@@ -79,6 +79,8 @@ namespace OperatingSystem
             }
         }
 
+        // Used to parse the configuration file and return a
+        // Configuration object
         private static Configuration parseConfiguration(string path)
         {
             // Initialize variables
@@ -170,6 +172,8 @@ namespace OperatingSystem
             }
         }
 
+        // Parses the metadata file and returns a segmented version of each
+        // of the components in a List of String[3]
         private static List<string[]> parseMeta(string path)
         {
             // Initialize variables
@@ -205,6 +209,8 @@ namespace OperatingSystem
             return retval;
         }
 
+        // Converts the List of String[3] into a List of Processes according
+        // to the rules of the project
         private static List<Process> parseProcesses(List<String[]> src)
         {
             // Initialize variables
@@ -245,7 +251,6 @@ namespace OperatingSystem
                             case "O(monitor":
                                 type = InstructionType.MONITOR_OUTPUT;
                                 break;
-
                         }
 
                         // Get the time
