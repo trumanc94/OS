@@ -9,9 +9,9 @@ namespace OperatingSystem
     public enum InstructionType
     {
         COMPUTE,
-        MONITOR, 
-        HARD_DRIVE_IN,
-        HARD_DRIVE_OUT,
-        KEYBOARD
+        MONITOR_OUTPUT,
+        HARD_DRIVE_OUTPUT,
+        HARD_DRIVE_INPUT,
+        KEYBOARD_INPUT
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -15,12 +16,14 @@ namespace OperatingSystem
         static void Main(string[] args)
         {
             // Initialize variables
+            Stopwatch sw = new Stopwatch();
             Configuration config;
 
             // Check if the arguments contains a file name
             if( args.Length >= 1 )
             {
                 // Parse the configurations from that file
+                sw.Restart();
                 config = parseConfiguration(args[0]);
 
                 // Initialize the scheduler
@@ -38,11 +41,16 @@ namespace OperatingSystem
                         scheduler = new FIFOScheduler(config);
                         break;
                 }
+                sw.Stop();
+
+                // Log
+                config.logger.log("SYSTEM - Boot complete (" + sw.ElapsedMilliseconds + "ms)");
 
                 // Read the meta
                 List<String[]> metaList = parseMeta(config.metaFilePath);
 
                 // Read the processes
+                sw.Restart();
                 List<Process> procList = parseProcesses(metaList);
 
                 // Move processes into the scheduler
@@ -50,18 +58,24 @@ namespace OperatingSystem
                 {
                     scheduler.addProcessToReady(i);
                 }
+                sw.Stop();
+
+                // Log
+                config.logger.log("SYSTEM - Processes created and moved to ready (" 
+                    + sw.ElapsedMilliseconds + "ms)");
 
                 // Main loop
                 while( !scheduler.isComplete() )
                 {
                     scheduler.runOneTimeUnit();
                     Thread.Sleep(100);
-                    Console.WriteLine("Woken");
                 }
 
-                // Keep the console window open in debug mode.
-                Console.WriteLine("Press any key to exit.");
-                Console.ReadKey();
+                // Log
+                config.logger.log("SYSTEM - Shutting down");
+
+                // Close the logger (it flushes the file buffer)
+                config.logger.close();
             }
         }
 
@@ -167,7 +181,7 @@ namespace OperatingSystem
             
             try
             {
-                // Read everything (which is all on one line)
+                // Read everything (which is all one one line)
                 string content = reader.ReadLine();
 
                 // Split between units
@@ -222,16 +236,16 @@ namespace OperatingSystem
                                 type = InstructionType.COMPUTE;
                                 break;
                             case "I(hard drive":
-                                type = InstructionType.HARD_DRIVE_IN;
+                                type = InstructionType.HARD_DRIVE_INPUT;
                                 break;
                             case "I(keyboard":
-                                type = InstructionType.KEYBOARD;
+                                type = InstructionType.KEYBOARD_INPUT;
                                 break;
                             case "O(hard drive": 
-                                type = InstructionType.HARD_DRIVE_OUT;
+                                type = InstructionType.HARD_DRIVE_OUTPUT;
                                 break;
                             case "O(monitor":
-                                type = InstructionType.MONITOR;
+                                type = InstructionType.MONITOR_OUTPUT;
                                 break;
 
                         }

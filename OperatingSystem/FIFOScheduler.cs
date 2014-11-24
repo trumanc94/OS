@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,109 +13,83 @@ namespace OperatingSystem
         public FIFOScheduler(Configuration config) : base(config) { }
 
         // Methods
-        public Process getNextReady()
-        {
-            // If ready list not empty, remove next Process from list and return it
-            if (ready.Any())
-            {
-                Process temp = ready.First();
-                ready.RemoveAt(0);
-                return temp;
-            }
-
-            // Else, return null
-            return null;
-        }
-
-        public void waitingToRunning(Process processToMove)
-        {
-            // Remove process from waiting, and set it as running
-            waiting.Remove(processToMove);
-            running = processToMove;
-        }
-
         public override bool runOneTimeUnit()
         {
-            // Get next process
-            Process currentProcess = getNextReady();
-            running = currentProcess;
+            // Start by servicing interrupts
+            serviceInterrupts();
 
-            // Run process to completion
-            while (!running.isComplete())
+            // If there is no process running
+            if (running == null)
             {
-                // Run next process instruction
-                Instruction pInstruct = running.dequeue();
-                switch (pInstruct.getType())
+                // If there is anything in the ready
+                if( ready.Any() )
                 {
-                    case InstructionType.COMPUTE:
-                        // Display processing time for current instruction
-                        Console.WriteLine("Processing: {0}", pInstruct.getRemainingTime() * conf.processorTime);
-                        break;
+                    // Initialize variables
+                    Stopwatch sw = new Stopwatch();
 
-                    case InstructionType.MONITOR:
-                        // Create IO thread
-                        IOThread monitor = new IOThread(pInstruct.getRemainingTime() * conf.monitorTime);
-                        
-                        // Block process
-                        moveToWaiting();
+                    // Select a new process
+                    sw.Start();
+                    running = ready[0];
+                    ready.RemoveAt(0);
+                    sw.Stop();
 
-                        // Run thread
-                        monitor.runIO();
-                        Console.WriteLine("Monitor: {0}", pInstruct.getRemainingTime() * conf.monitorTime);
-                        
-                        // Move process back to running once IO thread complete
-                        waitingToRunning(currentProcess);
-                        break;
-
-                    case InstructionType.HARD_DRIVE_IN:
-                        // Create IO thread
-                        IOThread hdIn = new IOThread(pInstruct.getRemainingTime() * conf.hdTime);
-
-                        // Block process
-                        moveToWaiting();
-
-                        // Run thread
-                        hdIn.runIO();
-                        Console.WriteLine("hdIn: {0}", pInstruct.getRemainingTime() * conf.hdTime);
-
-                        // Move process back to running once IO thread complete
-                        waitingToRunning(currentProcess);
-                        break;
-
-                    case InstructionType.HARD_DRIVE_OUT:
-                        // Create IO thread
-                        IOThread hdOut = new IOThread(pInstruct.getRemainingTime() * conf.hdTime);
-
-                        // Block process
-                        moveToWaiting();
-
-                        // Run thread
-                        hdOut.runIO();
-                        Console.WriteLine("hdOut: {0}", pInstruct.getRemainingTime() * conf.hdTime);
-
-                        // Move process back to running once IO thread complete
-                        waitingToRunning(currentProcess);
-                        break;
-
-                    case InstructionType.KEYBOARD:
-                        // Create IO thread
-                        IOThread keyboard = new IOThread(pInstruct.getRemainingTime() * conf.keyboardTime);
-
-                        // Block process
-                        moveToWaiting();
-
-                        // Run thread
-                        keyboard.runIO();
-                        Console.WriteLine("Keyboard: {0}", pInstruct.getRemainingTime() * conf.keyboardTime);
-
-                        // Move process back to running once IO thread complete
-                        waitingToRunning(currentProcess);
-                        break;
+                    // Log the swap
+                    config.logger.log("SYSTEM - PID " + running.getPID()
+                        + " swapped into the processor (" + sw.ElapsedMilliseconds + "ms)");
                 }
             }
 
-            // Move finished process to terminate state
-            running = null;
+            // If a new process was selected
+            if( running != null )
+            {
+                // Check if the process is complete
+                if (!running.isComplete())
+                {
+                    // Get the instruction
+                    Instruction ins = running.front();
+
+                    // If it is a compute instruction
+                    if (ins.getType() == InstructionType.COMPUTE)
+                    {
+                        // Decrement its time
+                        ins.decrementTime();
+
+                        // If instruction is complete
+                        if (ins.getRemainingTime() <= 0)
+                        {
+                            // Dequeue the instruction
+                            running.dequeue();
+                        }
+
+                        // Log the compute
+                        config.logger.log("PID " + running.getPID()
+                            + " - Processing (" + config.processorTime + "ms)");
+                    }
+                    else
+                    {
+                        // Log the request
+                        config.logger.log("SYSTEM - PID " + running.getPID()
+                            + " started " + running.front().getType().ToString().ToLower());
+
+                        // Request IO for the current process
+                        requestIOForCurrent();
+                    }
+                }
+                else
+                {
+                    // Log the removal of the complete process
+                    config.logger.log("SYSTEM - PID " + running.getPID()
+                        + " completed");
+
+                    // Remove the process from running
+                    running = null;
+                }
+
+                // Return (for process executed)
+                return true;
+            }
+
+            // Else (for no new process selected)
             return false;
         }
     }

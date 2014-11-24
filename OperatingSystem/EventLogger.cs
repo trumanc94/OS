@@ -53,6 +53,7 @@ namespace OperatingSystem
         public void close()
         {
             // Reset the values and close the stream
+            fileStream.Flush();
             toConsole = toFile = false;
             fileStream.Close();
             fileStream = null;

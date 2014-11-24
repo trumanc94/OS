@@ -27,34 +27,13 @@ namespace OperatingSystem
             return pid;
         }
 
-        public int getTotalProcessTime()
-        {
-            return totalProcessTime;
-        }
-
-        public void updateTotalProcessTime()
-        {
-            // Iterate through instruction queue and update total Process time based on instruction times
-            totalProcessTime = 0;
-            foreach (Instruction i in instructions)
-            {
-                totalProcessTime += i.getRemainingTime();
-            }
-        }
-
-        public bool isComplete()
-        {
-            // Process is complete if there are no more instructions
-            return (instructions.Count == 0);
-        }
-
         public void enqueue( Instruction toAdd )
         {
             // Enqueue new Instruction into instructions queue
             instructions.Enqueue(toAdd);
             
             // Update total Process time with new instruction
-            this.updateTotalProcessTime();
+            totalProcessTime += toAdd.getRemainingTime();
         }
 
         public Instruction dequeue()
@@ -66,7 +45,7 @@ namespace OperatingSystem
                 Instruction temp = instructions.Dequeue();
 
                 // Update total Process time without dequeued instruction
-                this.updateTotalProcessTime();
+                recalculateTotalProcessTime();
 
                 // Return dequeued instruction
                 return temp;
@@ -79,6 +58,10 @@ namespace OperatingSystem
             return instructions.Peek();
         }
 
+        public bool isComplete()
+        {
+            return !(instructions.Any());
+        }
 
         // IComparable Interface implementation for Process Class
         public int CompareTo(Process other)
@@ -92,6 +75,16 @@ namespace OperatingSystem
 */
             // Default comparer for total process time (sorts by ascending Total Processing Time)
             return this.totalProcessTime.CompareTo(other.totalProcessTime);
+        }
+
+        protected void recalculateTotalProcessTime()
+        {
+            // Iterate through instruction queue and update total Process time based on instruction times
+            totalProcessTime = 0;
+            foreach (Instruction i in instructions)
+            {
+                totalProcessTime += i.getRemainingTime();
+            }
         }
     }
 }

@@ -14,13 +14,13 @@ namespace OperatingSystem
         protected List<Process> waiting;
         protected Dictionary<int, Thread> threads;
         protected Process running;
-        protected Configuration conf;
+        protected Configuration config;
 
         // Constructor
         public Scheduler(Configuration configuration)
         {
             // Allocate the members
-            conf = configuration;
+            config = configuration;
             running = null;
             ready = new List<Process>();
             waiting = new List<Process>();
@@ -43,17 +43,50 @@ namespace OperatingSystem
             // Add the process to the ready list
             ready.Add(src);
         }
-        public void moveToWaiting()
+
+        // Protected Methods
+        protected void requestIOForCurrent()
         {
-            // If currently running process is blocked, move it to waiting, and set running to null
-            if (running != null)
+            // Check if there is a process running
+            if( running != null )
             {
+                // Check which type of IO
+                InstructionType type = running.front().getType();
+
+                // Calculate the appropriate time
+                int time = running.front().getRemainingTime();
+                switch( type )
+                {
+                    case InstructionType.HARD_DRIVE_INPUT:
+                    case InstructionType.HARD_DRIVE_OUTPUT:
+                        time *= config.hdTime;
+                        break;
+                    case InstructionType.KEYBOARD_INPUT:
+                        time *= config.keyboardTime;
+                        break;
+                    case InstructionType.MONITOR_OUTPUT:
+                        time *= config.monitorTime;
+                        break;
+                }
+
+                // Construct a new thread
+                IOThread target = new IOThread(time);
+                Thread thread = new Thread(new ThreadStart(target.runIO));
+
+                // Add thread to the dictionary
+                threads.Add(running.getPID(), thread);
+                
+                // Move the process out of the running and into the waiting
                 waiting.Add(running);
+
+                // Start the thread
+                thread.Start();
+
+                // Reset running
                 running = null;
             }
         }
 
-        // Protected Methods
         protected void serviceInterrupts()
         {
             // Initialize variables
@@ -71,9 +104,35 @@ namespace OperatingSystem
                     // If it was found
                     if (result != null)
                     {
+                        // Calculate the time
+                        int time = result.front().getRemainingTime();
+                        switch( result.front().getType() )
+                        {
+                            case InstructionType.HARD_DRIVE_INPUT:
+                            case InstructionType.HARD_DRIVE_OUTPUT:
+                                time *= config.hdTime;
+                                break;
+                            case InstructionType.KEYBOARD_INPUT:
+                                time *= config.keyboardTime;
+                                break;
+                            case InstructionType.MONITOR_OUTPUT:
+                                time *= config.monitorTime;
+                                break;
+                        }
+
+                        // Log the completion
+                        config.logger.log("SYSTEM - PID " + result.getPID()
+                            + " finished " + result.front().getType().ToString().ToLower()
+                            + " (" + time + "ms)");
+
+                        // Remove the instruction
+                        result.dequeue();
+
                         // Add to ready, remove from waiting
                         ready.Add(result);
                         waiting.Remove(result);
+
+                        // Add the key for later removal from thread dictionary
                         tmp.Add(i.Key);
                     }
                     else
